@@ -22,6 +22,18 @@ app.use(
   )
 );
 
+const errorHandler = (error, request, response, next) => {
+  console.error(error.message);
+
+  if (error.name === 'CastError' && error.kind === 'ObjectId') {
+    return response.status(400).send({ error: 'malformatted id' });
+  }
+
+  next(error);
+};
+
+app.use(errorHandler);
+
 // let persons = [
 //   {
 //     name: 'Arto Hellas',
@@ -71,10 +83,12 @@ app.get('/api/persons/:id', (req, res) => {
   }
 });
 
-app.delete('/api/persons/:id', (req, res) => {
-  Person.findByIdAndRemove(req.params.id).then((result) => {
-    res.status(204).end();
-  });
+app.delete('/api/persons/:id', (req, res, next) => {
+  Person.findByIdAndRemove(req.params.id)
+    .then((result) => {
+      res.status(204).end();
+    })
+    .catch((error) => next(error));
 });
 
 app.post('/api/persons', (req, res) => {
