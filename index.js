@@ -63,7 +63,10 @@ app.get('/', (req, res) => {
 
 app.get('/info', (req, res) => {
   const date = new Date().toString();
-  res.send(`Phonebook has info for ${persons.length} people <p>${date}</p>`);
+  Person.countDocuments({}, (err, count) => {
+    res.send(`Phonebook has info for ${count} people <p>${date}</p>`);
+  });
+  // res.send(`Phonebook has info for ${persons.length} people <p>${date}</p>`);
 });
 
 app.get('/api/persons', (req, res) => {
@@ -72,15 +75,16 @@ app.get('/api/persons', (req, res) => {
   });
 });
 
-app.get('/api/persons/:id', (req, res) => {
-  const id = Number(req.params.id);
-  const person = persons.find((person) => person.id === id);
-
-  if (person) {
-    res.json(person);
-  } else {
-    res.status(404).end();
-  }
+app.get('/api/persons/:id', (req, res, next) => {
+  Person.findById(req.params.id)
+    .then((person) => {
+      if (person) {
+        res.json(person.toJSON());
+      } else {
+        res.status(404).end();
+      }
+    })
+    .catch((error) => next(error));
 });
 
 app.delete('/api/persons/:id', (req, res, next) => {
