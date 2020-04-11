@@ -28,6 +28,11 @@ app.get('/', (req, res) => {
   res.send('<h1>Hello World</h1>');
 });
 
+app.get('/info', (req, res) => {
+  const date = new Date().toString();
+  res.send(`Phonebook has info for ${persons.length} people <p>${date}</p>`);
+});
+
 app.get('/api/persons', (req, res) => {
   res.json(persons);
 });
