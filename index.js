@@ -85,19 +85,6 @@ app.delete('/api/persons/:id', (req, res, next) => {
 
 app.post('/api/persons', (req, res, next) => {
   const body = req.body;
-  // if (!body.name || !body.number) {
-  //   return res.status(400).json({
-  //     error: 'name and/or number missing',
-  //   });
-  // }
-
-  // const existing = persons.find((person) => person.name === body.name);
-
-  // if (existing) {
-  //   return res.status(400).json({
-  //     error: 'name must be unique',
-  //   });
-  // }
 
   const person = new Person({
     name: body.name,
