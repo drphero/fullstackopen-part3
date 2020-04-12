@@ -5,8 +5,8 @@ const cors = require('cors');
 const Person = require('./models/person');
 const app = express();
 
-app.use(express.json());
 app.use(cors());
+app.use(express.json());
 app.use(express.static('build'));
 
 morgan.token('person', function (req) {
@@ -21,18 +21,6 @@ app.use(
     ':method :url :status :res[content-length] - :response-time ms :person'
   )
 );
-
-const errorHandler = (error, request, response, next) => {
-  console.error(error.message);
-
-  if (error.name === 'CastError' && error.kind === 'ObjectId') {
-    return response.status(400).send({ error: 'malformatted id' });
-  }
-
-  next(error);
-};
-
-app.use(errorHandler);
 
 // let persons = [
 //   {
@@ -95,13 +83,13 @@ app.delete('/api/persons/:id', (req, res, next) => {
     .catch((error) => next(error));
 });
 
-app.post('/api/persons', (req, res) => {
+app.post('/api/persons', (req, res, next) => {
   const body = req.body;
-  if (!body.name || !body.number) {
-    return res.status(400).json({
-      error: 'name and/or number missing',
-    });
-  }
+  // if (!body.name || !body.number) {
+  //   return res.status(400).json({
+  //     error: 'name and/or number missing',
+  //   });
+  // }
 
   // const existing = persons.find((person) => person.name === body.name);
 
@@ -115,9 +103,12 @@ app.post('/api/persons', (req, res) => {
     name: body.name,
     number: body.number,
   });
-  person.save().then((returnedPerson) => {
-    res.json(returnedPerson.toJSON());
-  });
+  person
+    .save()
+    .then((returnedPerson) => {
+      res.json(returnedPerson.toJSON());
+    })
+    .catch((error) => next(error));
 });
 
 app.put('/api/persons/:id', (req, res, next) => {
@@ -132,6 +123,20 @@ app.put('/api/persons/:id', (req, res, next) => {
     })
     .catch((error) => next(error));
 });
+
+const errorHandler = (error, request, response, next) => {
+  console.error(error.message);
+
+  if (error.name === 'CastError' && error.kind === 'ObjectId') {
+    return response.status(400).send({ error: 'malformatted id' });
+  } else if (error.name === 'ValidationError') {
+    return response.status(400).json({ error: error.message });
+  }
+
+  next(error);
+};
+
+app.use(errorHandler);
 
 const PORT = process.env.PORT || 3001;
 app.listen(PORT, () => {
